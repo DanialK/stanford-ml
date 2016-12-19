@@ -72,7 +72,7 @@ h = sigmoid(z3);
 yk = zeros(num_labels, m); % 10 x 5000;
 
 for i=1:m
-   yk(y(i), i) = 1;
+  yk(y(i), i) = 1;
 end
 
 p = sum(sum(Theta1(:, 2:end).^2, 2))+sum(sum(Theta2(:, 2:end).^2, 2));
@@ -83,28 +83,54 @@ J = 1/m * sum(sum((-yk') .* log(h) - (1-yk') .* log(1-h))) + lambda * p/(2*m);
 
 diff1 = zeros(size(Theta1));
 diff2 = zeros(size(Theta2));
-for t=1:m
-    a1 = X(t, :);
-    a1 = [1; a1'];
-    z2 = Theta1 * a1;
-    a2 = sigmoid(z2);
-    a2 = [1; a2];
-    z3 = Theta2 * a2;
-    a3 = sigmoid(z3);
-    h = a3;
-    
-    delta3 = a3 - (yk(:, t) == 1);
-    delta2 = Theta2' * delta3 .* [0; sigmoidGradient(z2)];
-    delta2 = delta2(2:end);
-    
-    diff1 = diff1 + delta2 * a1';
-    diff2 = diff2 + delta3 * a2';
-end
+
+% % Using Loops
+% for t=1:m
+%     a1 = X(t, :);
+%     a1 = [1; a1'];
+%     z2 = Theta1 * a1;
+%     a2 = sigmoid(z2);
+%     a2 = [1; a2];
+%     z3 = Theta2 * a2;
+%     a3 = sigmoid(z3);
+%     h = a3;
+%     
+%     delta3 = a3 - (yk(:, t) == 1);
+%     delta2 = Theta2' * delta3 .* [0; sigmoidGradient(z2)];
+%     delta2 = delta2(2:end);
+%     
+%     diff1 = diff1 + delta2 * a1';
+%     diff2 = diff2 + delta3 * a2';
+% end
+% 
+% Theta1_grad = 1/m * diff1;
+% Theta1_grad = Theta1_grad + lambda/m * [zeros(size(Theta1, 1), 1) Theta1(:, 2:end)];
+% Theta2_grad = 1/m * diff2;
+% Theta2_grad = Theta2_grad + lambda/m * [zeros(size(Theta2, 1), 1) Theta2(:, 2:end)];
+
+% % Using Vectorisation
+a1 = X;
+a1 = [ones(m, 1) a1]';
+z2 = Theta1 * a1;
+a2 = sigmoid(z2);
+a2 = [ones(m, 1) a2']';
+z3 = Theta2 * a2;
+a3 = sigmoid(z3);
+h = a3;
+
+delta3 = a3 - yk;
+delta2 = Theta2' * delta3 .* [zeros(m,1) sigmoidGradient(z2)']';
+delta2 = delta2(2:end, :);
+
+diff1 = delta2 * a1';
+diff2 = delta3 * a2';
 
 Theta1_grad = 1/m * diff1;
 Theta1_grad = Theta1_grad + lambda/m * [zeros(size(Theta1, 1), 1) Theta1(:, 2:end)];
 Theta2_grad = 1/m * diff2;
 Theta2_grad = Theta2_grad + lambda/m * [zeros(size(Theta2, 1), 1) Theta2(:, 2:end)];
+
+
 
 % =========================================================================
 
